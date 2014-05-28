@@ -30,6 +30,11 @@ function tryCatchApply(fn, args, receiver) {
 }
 
 
+var STATE = {
+    REJECTED: 1 << 1,
+    RESOLVED: 1 << 2
+}
+
 
 var Promise = module.exports = function(onSuccess, onFail) {
     if(!(this instanceof Promise)) {
@@ -38,11 +43,14 @@ var Promise = module.exports = function(onSuccess, onFail) {
         else
             return Promise.start();
     }
+    this.bitField = 0;
     this.scope = this;
     this.nextPromise = false;
     this.successFn = onSuccess;
     this.failFn = onFail;
 }
+
+Promise.DEBUG = false;
 
 Promise.isPromise = function(val){
     return val && (val instanceof Promise);
@@ -56,6 +64,41 @@ Promise.start = function(){
     return ret;
 }
 
+
+/**
+ * Return true if the promise was rejected
+ */
+Promise.prototype.isRejected = function(){
+    return (this.bitField & STATE.REJECTED) !== 0;
+}
+/**
+ * Set promise to rejected
+ * @private
+ */
+Promise.prototype.setRejected = function(){
+    this.bitField |= STATE.REJECTED;
+}
+
+/**
+ * Return true if the promise was resolved
+ */
+Promise.prototype.isResolved = function(){
+    return (this.bitField & STATE.RESOLVED) !== 0;
+}
+/**
+ * Set promise to resolved
+ * @private
+ */
+Promise.prototype.setResolved = function(){
+    this.bitField |= STATE.RESOLVED;
+}
+
+/**
+ * Return true if the promise was resolved or rejected
+ */
+Promise.prototype.isFulfilled = function(){
+    return this.isResolved() || this.isRejected();
+}
 
 /**
  * the most efficient way of utilizing `this` with promises. The handler functions are called in scope of the defined argument
@@ -121,7 +164,6 @@ Promise.prototype.nfcall = function(fn, var_args) {
     return this.chainPromise(result);
 }
 
-
 /**
  * Gives you a function of the PromiseResolver`. The callback accepts error 
  * object in first argument and success values on the 2nd parameter and the 
@@ -158,11 +200,33 @@ Promise.prototype.chainPromise = function(promise) {
     return promise;
 }
 
+
+/**
+ * Checks if the promiss can be fulfilled, if not and debug is on its race an error
+ * @private
+ */
+Promise.prototype.canFulfill = function(type) {
+    if(!this.isFulfilled())
+        return true;
+    if(Promise.DEBUG) {
+        var msg = 'call '+type+' but promise allready '+(this.isResolved() ? 'resolved' : 'rejected');
+        msg += '\r\n'+(new Error()).stack;
+        process.nextTick(function onPromiseCalledOften(){
+            throw new Error(msg);
+        })
+    }
+    return false;
+}
+
 /**
  * Resolve this promise with a specified value
  */
 Promise.prototype.resolve = function(data){
+    if(!this.canFulfill('resolve'))
+        return;
+
     delete this.scope;
+    this.setResolved();
     if(Promise.isPromise(data)) {        
         while(data.nextPromise) //Find the last promis and add me
             data = data.nextPromise;
@@ -185,7 +249,11 @@ Promise.prototype.resolve = function(data){
  * Reject this promise with an error
  */
 Promise.prototype.reject = function (e) {
+    if(!this.canFulfill('reject'))
+        return;
+
     delete this.scope;
+    this.setRejected();
     if(!this.nextPromise)
         process.nextTick(function onPromiseThrow(){
             throw e

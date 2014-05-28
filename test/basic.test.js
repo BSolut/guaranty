@@ -1,4 +1,3 @@
-
 var assert = require('assert'),
 	Promise = require('../index.js');
 
