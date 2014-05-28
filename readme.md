@@ -15,7 +15,7 @@ NO! its look and feel like but **guaranty** is more flow controll like [Step](ht
 
 
 
-###new Promise()
+### new Promise()
 
 Create a new promise. 
 
@@ -45,7 +45,7 @@ Promise().then(function(){
 ```
 
 
-###.then([Function resolvedHandler] [, Function rejectedHandler ])
+### .then([Function resolvedHandler] [, Function rejectedHandler ])
 
 
 [Promises/A+ `.then()`](http://promises-aplus.github.io/promises-spec/). Returns a new promise chained from this promise. The new promise will be rejected or resolved dedefer on the passed `fulfilledHandler`, `rejectedHandler` and the state of this promise.
@@ -59,7 +59,7 @@ promptAsync("Which url to visit?").then(function(url){
 ```
 
 
-###.catch(Function handler)
+### .catch(Function handler)
 
 This is a Pokemon handler catch-them-all exception handler, shortcut for calling `.then(null, handler)` on this promise. Any exception happening in a `.then`-chain will propagate to nearest `.catch` handler.
 
@@ -74,7 +74,7 @@ somePromise.then(function(){
  ```
 
 
-###.bind(dynamic thisArg)
+### .bind(dynamic thisArg)
 
 the most efficient way of utilizing `this` with promises. The handler functions are called in scope of the defined argument
 
@@ -94,7 +94,7 @@ myObj.id === 5; //true
  ```
  
 
-###.nfcall(Function fn [, dynamic arg...])
+### .nfcall(Function fn [, dynamic arg...])
 
 used for converen node-style callbacks into promises.
 
@@ -103,14 +103,14 @@ Promise().nfcall(fs.readFile, '/tmp/myFile')
   .then(function (data) {
     console.log('File readed successfully', data)
   })
-  .fail(function (err) {
+  .catch(function (err) {
     console.log('Failed to read file', err)
   })
 ```
 
-###.asCallback()
+### .asCallback()
 
-Gives you a function of the PromiseResolver`. The callback accepts error object in first argument and success values on the 2nd parameter and the  rest, I.E. node js conventions. If the the callback is called with multiple success values, it gets convert to an array of the values.
+Gives you a function of the PromiseResolver. The callback accepts error object in first argument and success values on the 2nd parameter and the  rest, I.E. node js conventions. If the the callback is called with multiple success values, it gets convert to an array of the values.
 
 
 ```js
