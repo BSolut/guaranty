@@ -120,29 +120,12 @@ Promise.prototype.then = function(onSuccess, onFail) {
     return this.chainPromise(ret);
 }
 
-/**
- * Provide a callback to be called whenever this promise is rejected
- */
-Promise.prototype.catch = function(onFail) {
-    return this.then(undefined, onFail);
-}
 
-/**
- * Returns a promise that will be call the function in a node style format with
- * an callback. All arguments for function should be given except the final 
- * callback
- */
-Promise.prototype.nfcall = function(fn, var_args) {
-    //https://github.com/petkaantonov/bluebird/wiki/Optimization-killers#3-managing-arguments
-    var args = new Array(arguments.length-1);
-    for(var i=1;i<arguments.length;++i)
-        args[i-1] = arguments[i];
-    args.push( mycallback );
-
+Promise.prototype._nfcallScope = function(fn, scope, args) {
     var result;
-
+    args.push( mycallback );
     function mycallback(err, data) {
-        if(err !== undefined)
+        if(err)
             result.reject(err)
         else {
             if(arguments.length > 2) {
@@ -156,13 +139,117 @@ Promise.prototype.nfcall = function(fn, var_args) {
     }
 
     result = new Promise(function(){
-        var ret = tryCatchApply(fn, args);
+        var ret = tryCatchApply(fn, args, scope);
         if(ret === catchedError)
             result.reject(ret.e);
     });
 
-    return this.chainPromise(result);
+    return this.chainPromise(result);    
 }
+
+/**
+ * Provide a callback to be called whenever this promise is rejected
+ */
+Promise.prototype.catch = function(onFail) {
+    return this.then(undefined, onFail);
+}
+
+/**
+ * Returns a promise that will be call the function in a node style format with
+ * an callback. All arguments for function should be given except the final 
+ * callback
+ */
+Promise.prototype.nfcall = function(fn, var_args) {
+    var args = new Array(arguments.length-1);
+    for(var i=1;i<arguments.length;++i)
+        args[i-1] = arguments[i];
+    return this._nfcallScope(fn, undefined, args);    
+}
+
+/**
+ * like nfcall but with scope
+ */
+Promise.prototype.nfcallScope = function(fn, scope, var_args) {
+    //https://github.com/petkaantonov/bluebird/wiki/Optimization-killers#3-managing-arguments
+    var args = new Array(arguments.length-2);
+    for(var i=2;i<arguments.length;++i)
+        args[i-2] = arguments[i];
+    return this._nfcallScope(fn, scope, args);
+}
+
+
+Promise.prototype.parallel = function(args, stopOnError) {
+
+    var promise = new Promise(function(){
+        
+        //Hijack next promis
+        var toCall = this.nextPromise,
+            nextPromise = this.nextPromise.nextPromise;
+        this.nextPromise.nextPromise = false;
+
+        var result = new Array(args.length),
+            waiting = result.length;
+
+        function checkNext(){
+            if(--waiting === 0)
+               nextPromise.withInput(result);
+        }
+
+        function execute(arg, pos) {
+            var sub = new Promise();
+            sub.then(toCall.successFn, toCall.failFn).then(function(val){
+                result[pos] = val;
+                checkNext();
+            }, function(e){
+                result[pos] = e;
+                checkNext();
+            });
+            sub.withInput(arg);
+        }
+
+        for(var i=0,l=args.length;i<l;i++)
+            execute(args[i], i);
+    }, function(e){
+        promise.nextPromise.reject(e);
+    });
+
+    return this.chainPromise(promise);    
+}
+
+
+/**
+ * Return a promise that get rejected if the current promise does not get
+ * fulfilled after a specified time.
+ 
+    TODO !!
+
+Promise.prototype.timeout = function(timeoutMs, timeoutMs) {
+    var p = new Promise(),
+        isTimedout = false;
+
+    timeoutMs = typeof timeoutMs === 'undefined' ? 3000 : timeoutMs;
+    var timeoutId = setTimeout(function(){
+        console.log('UHHH');
+        isTimedout = true;
+        p.reject( new Error(timeoutMs || 'Promise timed out after '+timeoutMs+' ms.') )
+    }, timeoutMs);
+
+    p.then(function(data){
+        if(!isTimedout) {
+            clearTimeout(timeoutId);
+            p.resolve(data);
+        }
+    }, function(e){
+        if(!isTimedout) {
+            clearTimeout(timeoutId);
+            p.reject(e);
+        }
+    })
+
+    return p;
+}
+
+*/
 
 /**
  * Gives you a function of the PromiseResolver`. The callback accepts error 
@@ -205,7 +292,7 @@ Promise.prototype.chainPromise = function(promise) {
  * Checks if the promiss can be fulfilled, if not and debug is on its race an error
  * @private
  */
-Promise.prototype.canFulfill = function(type) {
+Promise.prototype.canFulfill = function(type) {    
     if(!this.isFulfilled())
         return true;
     if(Promise.DEBUG) {
@@ -224,19 +311,21 @@ Promise.prototype.canFulfill = function(type) {
 Promise.prototype.resolve = function(data){
     if(!this.canFulfill('resolve'))
         return;
-
     delete this.scope;
     this.setResolved();
     if(Promise.isPromise(data)) {        
         while(data.nextPromise) //Find the last promis and add me
             data = data.nextPromise;
+
         var me = this;
         data.then(
             function(val){
-                me.resolve(val)
+                if(me.nextPromise)
+                    me.nextPromise.withInput(val);
             }, 
             function(e){
-                me.reject(e)
+                if(me.nextPromise)
+                    me.nextPromise.withError(e);
             }
         )
     } else {
