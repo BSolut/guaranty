@@ -187,6 +187,12 @@ Promise.prototype.parallel = function(args, stopOnError) {
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
 
+        if(!args || args.length === 0) {
+            nextPromise.withInput([]);
+            return undefined;
+        }
+
+
         var result = new Array(args.length),
             waiting = result.length;
 
@@ -216,40 +222,41 @@ Promise.prototype.parallel = function(args, stopOnError) {
     return this.chainPromise(promise);    
 }
 
+Promise.prototype.step = function(args, stopOnError) {
 
-/**
- * Return a promise that get rejected if the current promise does not get
- * fulfilled after a specified time.
- 
-    TODO !!
+    var promise = new Promise(function(){        
+        //Hijack next promis
+        var toCall = this.nextPromise,
+            nextPromise = this.nextPromise.nextPromise;
+        this.nextPromise.nextPromise = false;
 
-Promise.prototype.timeout = function(timeoutMs, timeoutMs) {
-    var p = new Promise(),
-        isTimedout = false;
+        var result = new Array(),
+            idx = 0;
 
-    timeoutMs = typeof timeoutMs === 'undefined' ? 3000 : timeoutMs;
-    var timeoutId = setTimeout(function(){
-        console.log('UHHH');
-        isTimedout = true;
-        p.reject( new Error(timeoutMs || 'Promise timed out after '+timeoutMs+' ms.') )
-    }, timeoutMs);
+        function next(){
+            if(idx === args.length)
+                return nextPromise.withInput(result);
 
-    p.then(function(data){
-        if(!isTimedout) {
-            clearTimeout(timeoutId);
-            p.resolve(data);
+            var sub = new Promise();
+            sub.then(toCall.successFn, toCall.failFn)
+                .then(function(val){
+                    result.push(val);
+                    next();
+                })
+                .catch(function(e){
+                    result.push(e);
+                    next();
+                })
+            sub.withInput(args[idx++]);
         }
+        next()
     }, function(e){
-        if(!isTimedout) {
-            clearTimeout(timeoutId);
-            p.reject(e);
-        }
-    })
+        promise.nextPromise.reject(e);
+    });
 
-    return p;
+    return this.chainPromise(promise);    
 }
 
-*/
 
 /**
  * Gives you a function of the PromiseResolver`. The callback accepts error 
