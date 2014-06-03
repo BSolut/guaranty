@@ -3,6 +3,43 @@ var assert = require('assert'),
 
 //describe timeout
 
+
+/*describe('Timeout', function(){
+
+
+	it('timing out', function(done){
+
+		Promise().timeout(2).then(function(){
+			assert(false, 'Should never reached');
+		}).catch(function(e){
+			console.log(e);
+			done();
+		})
+
+	})
+
+})
+return;*/
+
+describe('Checks', function(){
+
+	it('Promise resolve has promise', function(done){
+
+		function myCall(callback) {
+			setTimeout(function(){
+				callback(undefined, 2);
+			}, 2);
+		}
+
+		Promise().then(function(){
+			return Promise().nfcall(myCall);
+		}).then(function(val){
+			assert.strictEqual(val, 2);
+			done();
+		})
+	})
+})
+
 describe('Bind', function(){
 
 	it('sync', function(){
@@ -186,6 +223,26 @@ describe('NodeStyle', function(){
 			done();
 		})
 	})
+
+	it('Runs with scope', function(done){
+
+		var myScope = {
+			b: 3
+		}
+
+		var nodeStyleFunc = function(a, callback) {
+			var self = this;
+			setTimeout(function(){
+				callback(undefined, a + self.b)
+			}, 2)
+		}
+
+		Promise().nfcallScope(nodeStyleFunc, myScope, 2)
+		.then(function(val){
+			assert.strictEqual(val, 5);
+			done();
+		})
+	})	
 
 	it('Multiply callback parameter', function(done){
 		var nodeStyleCallback = function(callback){
