@@ -120,6 +120,13 @@ Promise.prototype.then = function(onSuccess, onFail) {
     return this.chainPromise(ret);
 }
 
+/**
+ * Provide a callback to be called whenever this promise is rejected
+ */
+Promise.prototype.catch = function(onFail) {
+    return this.then(undefined, onFail);
+}
+
 
 Promise.prototype._nfcallScope = function(fn, scope, args) {
     var result;
@@ -148,13 +155,6 @@ Promise.prototype._nfcallScope = function(fn, scope, args) {
 }
 
 /**
- * Provide a callback to be called whenever this promise is rejected
- */
-Promise.prototype.catch = function(onFail) {
-    return this.then(undefined, onFail);
-}
-
-/**
  * Returns a promise that will be call the function in a node style format with
  * an callback. All arguments for function should be given except the final 
  * callback
@@ -180,18 +180,18 @@ Promise.prototype.nfcallScope = function(fn, scope, var_args) {
 
 Promise.prototype.parallel = function(args, stopOnError) {
 
-    var promise = new Promise(function(){
+    var promise = new Promise(function(argsResolve){
         
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
 
+        args = args || argsResolve;
         if(!args || args.length === 0) {
             nextPromise.withInput([]);
             return undefined;
         }
-
 
         var result = new Array(args.length),
             waiting = result.length;
@@ -224,12 +224,14 @@ Promise.prototype.parallel = function(args, stopOnError) {
 
 Promise.prototype.step = function(args, stopOnError) {
 
-    var promise = new Promise(function(){        
+    var promise = new Promise(function(argsResolve){        
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
 
+        args = args || argsResolve;
+        
         var result = new Array(),
             idx = 0;
 
@@ -302,7 +304,7 @@ Promise.prototype.chainPromise = function(promise) {
  * Checks if the promiss can be fulfilled, if not and debug is on its race an error
  * @private
  */
-Promise.prototype.canFulfill = function(type) {    
+Promise.prototype.canFulfill = function(type) {
     if(!this.isFulfilled())
         return true;
     if(Promise.DEBUG) {
