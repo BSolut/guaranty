@@ -197,7 +197,7 @@ Promise.prototype.parallel = function(args, stopOnError) {
             waiting = result.length;
 
         function checkNext(){
-            if(--waiting === 0)
+            if(--waiting === 0 && nextPromise)
                nextPromise.withInput(result);
         }
 
@@ -234,8 +234,11 @@ Promise.prototype.step = function(args, stopOnError) {
             idx = 0;
 
         function next(){
-            if(idx === args.length)
-                return nextPromise.withInput(result);
+            if(idx === args.length) {
+                if(nextPromise)
+                    nextPromise.withInput(result);
+                return;
+            }
 
             var sub = new Promise();
             sub.then(toCall.successFn, toCall.failFn)
@@ -320,10 +323,9 @@ Promise.prototype.resolve = function(data){
         return;
     delete this.scope;
     this.setResolved();
-    if(Promise.isPromise(data)) {        
+    if(Promise.isPromise(data)) {   
         while(data.nextPromise) //Find the last promis and add me
             data = data.nextPromise;
-
         var me = this;
         data.then(
             function(val){
