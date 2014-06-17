@@ -3,6 +3,25 @@ var assert = require('assert'),
 
 describe('step', function(){
 
+
+    it('stops on first error', function(done){
+        Promise().step([1,2,3])
+            .then(function(step){
+                if(step === 2)
+                    throw new Error('BOOM');
+                return true;
+            })
+            .then(function(stepResult){
+                done( new Error('never reache') );
+            })
+            .catch(function(e){
+                if(e.message = 'BOOM')
+                    done();
+                else
+                    done(e);
+            })
+    })
+
     it('run', function(done){
         Promise().step([1,2,3]).then(function(val, resolve){
             setTimeout(function(){

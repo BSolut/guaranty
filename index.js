@@ -223,6 +223,7 @@ Promise.prototype.parallel = function(args, stopOnError) {
 }
 
 Promise.prototype.step = function(args, stopOnError) {
+    var stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
 
     var promise = new Promise(function(argsResolve){        
         //Hijack next promis
@@ -249,6 +250,11 @@ Promise.prototype.step = function(args, stopOnError) {
                     next();
                 })
                 .catch(function(e){
+                    //Stop executing with have an error
+                    if(stopOnError) {
+                        nextPromise.withError(e);
+                        return;
+                    }
                     result.push(e);
                     next();
                 })
