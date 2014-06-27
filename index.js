@@ -295,6 +295,16 @@ Promise.prototype.asCallback = function() {
 
 
 /**
+ * Wrapper for node-style function callback.
+ **/
+Promise.prototype.thenCallback = function(callback) {
+    this.then(function(value){
+        callback(undefined, value)
+    }, callback);
+}
+
+
+/**
  * Adds a new promis to chain
  * @private
  */

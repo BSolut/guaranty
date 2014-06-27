@@ -24,11 +24,11 @@ Example:
 ```js
 var p = new Promise();
 p.then(function(){
-	return 1
+  return 1
 }).then(function(val){
-	return val +1
+  return val +1
 }).then(function(val){
-	val === 2;
+  val === 2;
 })
 p.resolve(true); //Start resolving the promise
 ```
@@ -36,11 +36,11 @@ p.resolve(true); //Start resolving the promise
 ```js
 //immediately resolving the promise
 Promise().then(function(){
-	return 1
+  return 1
 }).then(function(val){
-	return val +1
+  return val +1
 }).then(function(val){
-	val === 2;
+  val === 2;
 })
 ```
 
@@ -107,6 +107,48 @@ Promise().nfcall(fs.readFile, '/tmp/myFile')
     console.log('Failed to read file', err)
   })
 ```
+
+### .nfcallScope(Function fn, Object scope, [, dynamic arg...])
+
+used for converen node-style callbacks with scoped into promises.
+
+```js
+Promise().nfcall(objFunction, obj, parm1)
+  .then(function (data) {
+    console.log('File readed successfully', data)
+  })
+  .catch(function (err) {
+    console.log('Failed to read file', err)
+  })
+```
+
+### .thenCallback(Function fn)
+
+Wrapper for node-style function callback.
+
+```js
+// Old style
+function doStuff(data, callback) {
+    Promise().then(function(val){
+        return data + 12;
+    })
+    .then(function(value){
+        callback(undefined, value)
+    })
+    .catch(callback)
+}
+
+// Wrapped style
+function doStuff(data, callback) {
+    Promise().then(function(val){
+        return data + 12;
+    })
+    .thenCallback(callback)
+}
+
+```
+
+
 
 ### .asCallback()
 
