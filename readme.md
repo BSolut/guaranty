@@ -6,11 +6,11 @@ Guaranty: a super lightweight promise for node.js
 
 *Why'd we write it?*
 
-same reason like [kew](https://github.com/Medium/kew), less overhead = faster code.
+For the same reason as [kew](https://github.com/Medium/kew), less overhead = faster code.
 
-*Its an full Promise framework like [Promises/A+](http://promises-aplus.github.io/promises-spec/)?*
+*Is it an full Promise framework like [Promises/A+](http://promises-aplus.github.io/promises-spec/)?*
 
-NO! its look and feel like but **guaranty** is more flow controll like [Step](https://github.com/creationix/step) and [Asyn.js](https://github.com/caolan/async) then a promise framework.
+NO! it looks and feels like it, but **guaranty** is more flow control (like [Step](https://github.com/creationix/step) and [Asyn.js](https://github.com/caolan/async)) than a promise framework.
 
 
 
@@ -48,7 +48,7 @@ Promise().then(function(){
 ### .then([Function resolvedHandler] [, Function rejectedHandler ])
 
 
-[Promises/A+ `.then()`](http://promises-aplus.github.io/promises-spec/). Returns a new promise chained from this promise. The new promise will be rejected or resolved dedefer on the passed `fulfilledHandler`, `rejectedHandler` and the state of this promise.
+[Promises/A+ `.then()`](http://promises-aplus.github.io/promises-spec/). Returns a new promise chained from this promise. The new promise will be rejected or resolved depending on the passed `fulfilledHandler`, `rejectedHandler` and the state of this promise.
 
 Example:
 
@@ -61,7 +61,7 @@ promptAsync("Which url to visit?").then(function(url){
 
 ### .catch(Function handler)
 
-This is a Pokemon handler catch-them-all exception handler, shortcut for calling `.then(null, handler)` on this promise. Any exception happening in a `.then`-chain will propagate to nearest `.catch` handler.
+This is a Pokemon gotta-catch-them-all exception handler; a shortcut for calling `.then(null, handler)` on this promise. Any exception happening in a `.then`-chain will propagate to nearest `.catch` handler.
 
 Example:
 
@@ -76,7 +76,7 @@ somePromise.then(function(){
 
 ### .bind(dynamic thisArg)
 
-the most efficient way of utilizing `this` with promises. The handler functions are called in scope of the defined argument
+the most efficient way of utilizing `this` with promises. The handler functions are called in the scope of the defined argument
 
 Example:
 
@@ -96,7 +96,7 @@ myObj.id === 5; //true
 
 ### .nfcall(Function fn [, dynamic arg...])
 
-used for converen node-style callbacks into promises.
+used for converting node-style callbacks into promises.
 
 ```js
 Promise().nfcall(fs.readFile, '/tmp/myFile')
@@ -110,7 +110,7 @@ Promise().nfcall(fs.readFile, '/tmp/myFile')
 
 ### .nfcallScope(Function fn, Object scope, [, dynamic arg...])
 
-used for converen node-style callbacks with scoped into promises.
+used for converting node-style callbacks with scoped into promises.
 
 ```js
 Promise().nfcall(objFunction, obj, parm1)
@@ -152,7 +152,7 @@ function doStuff(data, callback) {
 
 ### .asCallback()
 
-Gives you a function of the PromiseResolver. The callback accepts error object in first argument and success values on the 2nd parameter and the  rest, I.E. node js conventions. If the the callback is called with multiple success values, it gets convert to an array of the values.
+Gives you a function of the PromiseResolver. The callback accepts error object in first argument and success values on the 2nd parameter and the  rest, i.e. node JS conventions. If the the callback is called with multiple success values, it gets converted to an array of the values.
 
 
 ```js
