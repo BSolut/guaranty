@@ -19,9 +19,7 @@ describe('parallel', function(){
             assert.equal(err.message, 'BOOM');
         })
         .thenCallback(done);
-
     })
-
     
 
     it('run', function(){
