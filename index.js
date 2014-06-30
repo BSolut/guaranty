@@ -1,5 +1,5 @@
 //from: bluebrid utils
-//Try catch is not supported in optimizing compiler, so it is isolated
+//Try catch is not supported in optimizing compiler
 //https://github.com/petkaantonov/bluebird/wiki/Optimization-killers
 var catchedError = {e: {}};
 function tryCatch1(fn, receiver, arg) {
@@ -179,6 +179,7 @@ Promise.prototype.nfcallScope = function(fn, scope, var_args) {
 
 
 Promise.prototype.parallel = function(args, stopOnError) {
+    stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
 
     var promise = new Promise(function(argsResolve){
         
@@ -207,6 +208,10 @@ Promise.prototype.parallel = function(args, stopOnError) {
                 result[pos] = val;
                 checkNext();
             }, function(e){
+                if(stopOnError) {
+                    nextPromise.withError(e);
+                    return;
+                }
                 result[pos] = e;
                 checkNext();
             });
@@ -223,7 +228,7 @@ Promise.prototype.parallel = function(args, stopOnError) {
 }
 
 Promise.prototype.step = function(args, stopOnError) {
-    var stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
+    stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
 
     var promise = new Promise(function(argsResolve){        
         //Hijack next promis

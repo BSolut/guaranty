@@ -10,7 +10,7 @@ same reason like [kew](https://github.com/Medium/kew), less overhead = faster co
 
 *Its an full Promise framework like [Promises/A+](http://promises-aplus.github.io/promises-spec/)?*
 
-NO! its look and feel like but **guaranty** is more flow controll like [Step](https://github.com/creationix/step) then a promise framework.
+NO! its look and feel like but **guaranty** is more flow controll like [Step](https://github.com/creationix/step) and [Asyn.js](https://github.com/caolan/async) then a promise framework.
 
 
 
@@ -170,4 +170,54 @@ readAbc()
 .catch(function(e) {
     console.error(e);
 });
+```
+
+### .step(Array parameter, [Boolean stopOnFirstError = true])
+
+If you have a number of functions that need to be run sequentially, you can use step:
+
+
+```js
+var Promise = require('guaranty'),
+    a = 2;
+Promise().step([1,2,3]).then(function(value){
+    return a + value;
+})
+.then(function(stepResult){
+    //stepResult = [3,4,5]
+})
+
+
+//Or as result from a promise
+function getParams() {
+    return Promise().then(function(){
+        return [1,2,3]  
+    })
+}
+
+Promise().then(getParams)
+    .step().then(function(value){
+    a += value;
+    return true;
+})
+//a = 6
+```
+
+
+### .parallel(Array parameter, [Boolean stopOnFirstError = true])
+
+Like .step but the all functions get called asynchronously.
+
+
+```js
+var Promise = require('guaranty'),
+    a = 2;
+Promise().parallel([1,2,3]).then(function(value, resolve){
+    setTimeout(function(){
+        resolve( a + value)
+    }, 500)
+})
+.then(function(ret){
+    //ret = [3,4,5]
+})
 ```

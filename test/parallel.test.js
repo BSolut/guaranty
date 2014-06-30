@@ -3,6 +3,27 @@ var assert = require('assert'),
 
 describe('parallel', function(){
 
+    it('stops on error', function(done) {
+        Promise().parallel([1,2,3]).then(function(val, resolve, reject){
+            setTimeout(function(){
+                if(val !== 3)
+                    resolve(val);
+                else
+                    reject(new Error('BOOM'))
+            }, 2)
+        }).then(function(val){
+            console.log( val );
+            assert.equal(false, true, 'should never reached');
+        })
+        .catch(function(err){
+            assert.equal(err.message, 'BOOM');
+        })
+        .thenCallback(done);
+
+    })
+
+    
+
     it('run', function(){
         Promise().parallel([1,2,3]).then(function(val){
             return val + 1;
