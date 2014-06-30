@@ -14,5 +14,11 @@
     "type": "git",
     "url": "https://github.com/RichardBsolut/guaranty.git"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+     "mocha": "~1.4.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  }  
 }
