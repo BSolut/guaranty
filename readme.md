@@ -6,7 +6,7 @@ Guaranty: a super lightweight promise for node.js
 
 *Why'd we write it?*
 
-same reason like [kew](https://github.com/Medium/kew), less overhead = faster code.
+For the same reason as [kew](https://github.com/Medium/kew), less overhead = faster code.
 
 *Is it an full Promise framework like [Promises/A+](http://promises-aplus.github.io/promises-spec/)?*
 
