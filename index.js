@@ -181,12 +181,17 @@ Promise.prototype.nfcallScope = function(fn, scope, var_args) {
 Promise.prototype.parallel = function(args, stopOnError) {
     stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
 
+    var scope = this.scope,
+        that = this;
+
     var promise = new Promise(function(argsResolve){
         
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
+        if(scope !== that)
+            nextPromise.bind(scope);
 
         args = args || argsResolve;
         if(!args || args.length === 0) {
@@ -199,11 +204,13 @@ Promise.prototype.parallel = function(args, stopOnError) {
 
         function checkNext(){
             if(--waiting === 0 && nextPromise)
-               nextPromise.withInput(result);
+                nextPromise.withInput(result);
         }
 
         function execute(arg, pos) {
             var sub = new Promise();
+            if(scope !== that)
+                sub.bind(scope);
             sub.then(toCall.successFn, toCall.failFn).then(function(val){
                 result[pos] = val;
                 checkNext();
@@ -230,11 +237,17 @@ Promise.prototype.parallel = function(args, stopOnError) {
 Promise.prototype.step = function(args, stopOnError) {
     stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
 
+    var scope = this.scope,
+        that = this;
+
     var promise = new Promise(function(argsResolve){        
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
+        if(scope !== that)
+            nextPromise.bind(scope);
+
 
         args = args || argsResolve;
         
@@ -249,6 +262,7 @@ Promise.prototype.step = function(args, stopOnError) {
             }
 
             var sub = new Promise();
+            if(scope !== that) sub.bind(scope);
             sub.then(toCall.successFn, toCall.failFn)
                 .then(function(val){
                     result.push(val);
