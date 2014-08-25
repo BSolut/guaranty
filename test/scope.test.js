@@ -39,4 +39,16 @@ describe('Scope', function() {
             })
     })
 
+    it('parallel with no next', function() {
+        var myScope= {a: 2};
+        var p = Promise();
+        p.bind(myScope).parallel([1,2])
+            .then(function(val) {
+                this.a += val;
+                return true;
+            })
+        p.resolve(true);
+        assert.strictEqual(myScope.a, 5);
+    })
+
 })

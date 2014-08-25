@@ -184,18 +184,17 @@ Promise.prototype.parallel = function(args, stopOnError) {
     var scope = this.scope,
         that = this;
 
-    var promise = new Promise(function(argsResolve){
-        
+    var promise = new Promise(function(argsResolve){        
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
-        if(scope !== that)
+        if(scope !== that && nextPromise)
             nextPromise.bind(scope);
 
         args = args || argsResolve;
         if(!args || args.length === 0) {
-            nextPromise.withInput([]);
+            nextPromise && nextPromise.withInput([]);
             return undefined;
         }
 
@@ -236,7 +235,6 @@ Promise.prototype.parallel = function(args, stopOnError) {
 
 Promise.prototype.step = function(args, stopOnError) {
     stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
-
     var scope = this.scope,
         that = this;
 
@@ -245,7 +243,7 @@ Promise.prototype.step = function(args, stopOnError) {
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
-        if(scope !== that)
+        if(scope !== that && nextPromise)
             nextPromise.bind(scope);
 
 
