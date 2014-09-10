@@ -315,9 +315,11 @@ Promise.prototype.asCallback = function() {
  * Wrapper for node-style function callback.
  **/
 Promise.prototype.thenCallback = function(callback) {
+    if(!callback) return this;
     this.then(function(value){
         callback(undefined, value)
     }, callback);
+    return this;
 }
 
 
