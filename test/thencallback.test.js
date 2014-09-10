@@ -4,6 +4,40 @@ var assert = require('assert'),
 
 describe('thenCallback', function(){
 
+
+	it('chainable', function(){
+		var callData;
+		function myCall(err, data){
+			if(err) throw err;
+			callData = data;
+		}
+
+		Promise().then(function(){
+			return 3
+		})
+		.thenCallback(myCall)
+		.then(function(val){
+			return val + 2
+		})
+		.then(function(val){
+			assert.strictEqual(val, 5);
+			assert.strictEqual(callData, 3);
+		})
+	})
+
+	it('chainable no function', function(){
+		Promise().then(function(){
+			return 3
+		})
+		.thenCallback(undefined)
+		.then(function(val){
+			return val + 2
+		})
+		.then(function(val){
+			assert.strictEqual(val, 5);
+		})
+	})
+
 	it('goodcase', function(){
 		
 		function doStuff(data, callback) {
