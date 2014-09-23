@@ -145,7 +145,7 @@ Promise.prototype._nfcallScope = function(fn, scope, args) {
         }
     }
 
-    result = new Promise(function(){
+    result = new Promise(function(val, resolve){
         var ret = tryCatchApply(fn, args, scope);
         if(ret === catchedError)
             result.reject(ret.e);
@@ -184,7 +184,7 @@ Promise.prototype.parallel = function(args, stopOnError) {
     var scope = this.scope,
         that = this;
 
-    var promise = new Promise(function(argsResolve){        
+    var promise = new Promise(function(argsResolve, resolve){        
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
@@ -238,14 +238,13 @@ Promise.prototype.step = function(args, stopOnError) {
     var scope = this.scope,
         that = this;
 
-    var promise = new Promise(function(argsResolve){        
+    var promise = new Promise(function(argsResolve, resolve){        
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
         this.nextPromise.nextPromise = false;
         if(scope !== that && nextPromise)
             nextPromise.bind(scope);
-
 
         args = args || argsResolve;
         
@@ -262,14 +261,15 @@ Promise.prototype.step = function(args, stopOnError) {
             var sub = new Promise();
             if(scope !== that) sub.bind(scope);
             sub.then(toCall.successFn, toCall.failFn)
-                .then(function(val){
+                .then(function(val, resolve){
                     result.push(val);
                     next();
                 })
-                .catch(function(e){
+                .catch(function(e, resolve){
                     //Stop executing with have an error
                     if(stopOnError) {
-                        nextPromise.withError(e);
+                        if(nextPromise)
+                            nextPromise.withError(e);
                         return;
                     }
                     result.push(e);
@@ -314,7 +314,7 @@ Promise.prototype.asCallback = function() {
 /**
  * Wrapper for node-style function callback.
  **/
-Promise.prototype.thenCallback = function(callback) {
+Promise.prototype.thenCallback = function(callback) {    
     return this.then(function(value, resolve){
         if(callback)
             callback(undefined, value)
@@ -411,8 +411,7 @@ Promise.prototype.withInput = function(data) {
         var ret = tryCatch3(this.successFn, this.scope, data, doResolved, doRejected);
         if(ret === catchedError)
             this.reject(ret.e)
-        else
-        if(ret !== void 0)
+        else if(ret !== void 0 || this.successFn.length < 2) //function dosent handle resolve or reject so we all undefine as result
             this.resolve(ret);
     } else
         this.resolve(data);

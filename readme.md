@@ -58,6 +58,18 @@ promptAsync("Which url to visit?").then(function(url){
 });
 ```
 
+NOTE: Since version 0.2 resolveHandler are able to return undefined. As long then resolveHandler only has 0 or 1 parameter guranaty interpretit as an sync call and will execute the promis chain imidently.
+
+```js
+var a = 1;
+Promie().then(function(){
+  a += 2;
+}).then(function(val){
+  //val === undefined
+  //  a === 3
+})
+```
+
 
 ### .catch(Function handler)
 
