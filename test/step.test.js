@@ -3,6 +3,13 @@ var assert = require('assert'),
 
 describe('step', function(){
 
+    it('simple', function(done) {
+        Promise().step(['a', 'b'])
+            .then(function(itm) {
+                assert.equal(true, itm === 'a' || itm === 'b')
+            })
+            .thenCallback(done);
+    })
 
     it('stops on first error', function(done){
         Promise().step([1,2,3])

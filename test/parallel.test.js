@@ -3,6 +3,14 @@ var assert = require('assert'),
 
 describe('parallel', function(){
 
+    it('simple', function(done) {
+        Promise().parallel(['a', 'b'])
+            .then(function(val) {
+                assert.equal(true, val === 'a' || val === 'b')
+            })
+            .thenCallback(done);
+    })
+
     it('stops on error', function(done) {
         Promise().parallel([1,2,3]).then(function(val, resolve, reject){
             setTimeout(function(){
