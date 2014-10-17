@@ -319,7 +319,9 @@ Promise.prototype.thenCallback = function(callback) {
         if(callback)
             callback(undefined, value)
         resolve(value);
-    }, callback);
+    }, function(e){
+        callback && callback(e);
+    });
 }
 
 

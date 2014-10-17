@@ -5,6 +5,16 @@ var assert = require('assert'),
 
 describe('error', function() {
 	
+    it('thenCallback handels exceptions', function(done){
+        var p = new Promise(false);
+        p.then(function(val, resolve, reject){
+            reject(new Error('BAEM'));
+        }) 
+        .thenCallback(undefined)
+        p.resolve(true);
+        done();
+    })
+
 	it('resolve twice', function(done){
         Promise.DEBUG = true;
 
