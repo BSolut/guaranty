@@ -3,6 +3,27 @@ var assert = require('assert'),
 
 describe('step', function(){
 
+
+    it('runs empty', function(done){
+        Promise().step([]).then(function(itm){
+            done( new Error('never reache') );
+        })
+        .thenCallback(done)
+    })
+
+    it('runs null', function(done){
+        var catched = false;
+        Promise().step().then(function(itm){  //Promise starts with true step has no args so its used true
+            done( new Error('never reache') );
+        })
+        .catch(function(e){
+            catched = e.message == 'Step arguments must be an error'
+        })
+        .then(function(){
+            done( !catched ? new Error('Step excepts only arrays') : undefined );
+        })
+    })
+
     it('simple', function(done) {
         Promise().step(['a', 'b'])
             .then(function(itm) {

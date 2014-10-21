@@ -193,10 +193,15 @@ Promise.prototype.parallel = function(args, stopOnError) {
             nextPromise.bind(scope);
 
         args = args || argsResolve;
-        if(!args || args.length === 0) {
+        if(!Array.isArray(args)) {
+            nextPromise && nextPromise.withError( new Error('parallel arguments must be an error') );
+            return undefined;
+        }
+        if(args.length === 0) {
             nextPromise && nextPromise.withInput([]);
             return undefined;
         }
+
 
         var result = new Array(args.length),
             waiting = result.length;
@@ -247,6 +252,10 @@ Promise.prototype.step = function(args, stopOnError) {
             nextPromise.bind(scope);
 
         args = args || argsResolve;
+        if(!Array.isArray(args)) {
+            nextPromise && nextPromise.withError( new Error('Step arguments must be an error') );
+            return undefined;
+        }
         
         var result = new Array(),
             idx = 0;

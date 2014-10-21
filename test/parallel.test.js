@@ -3,6 +3,27 @@ var assert = require('assert'),
 
 describe('parallel', function(){
 
+
+    it('runs empty', function(done){
+        Promise().parallel([]).then(function(itm){
+            done( new Error('never reache') );
+        })
+        .thenCallback(done)
+    })
+
+    it('runs null', function(done){
+        var catched = false;
+        Promise().parallel().then(function(itm){  //Promise starts with true step has no args so its used true
+            done( new Error('never reache') );
+        })
+        .catch(function(e){
+            catched = e.message == 'parallel arguments must be an error'
+        })
+        .then(function(){
+            done( !catched ? new Error('Parallel excepts only arrays') : undefined );
+        })
+    })
+
     it('simple', function(done) {
         Promise().parallel(['a', 'b'])
             .then(function(val) {
