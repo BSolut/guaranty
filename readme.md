@@ -70,6 +70,17 @@ Promie().then(function(){
 })
 ```
 
+NOTE: Since version 0.3 resolvedHandler gets an new argument done, its an node callback styled function to resolve or reject the promise. Done function only pass the the second argument, everything after is ignored.
+
+```js
+Promie().then(function(val, resolve, reject, done){
+  fs.open('testfile.data','r+', done)
+}).then(function(fd){
+  //fd == reslult from fs.open 
+})
+```
+
+
 
 ### .catch(Function handler)
 

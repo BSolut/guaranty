@@ -11,9 +11,9 @@ function tryCatch1(fn, receiver, arg) {
     }
 }
 
-function tryCatch3(fn, receiver, arg1, arg2, arg3) {
+function tryCatch4(fn, receiver, arg1, arg2, arg3, arg4) {
     try {
-        return fn.call(receiver, arg1, arg2, arg3);
+        return fn.call(receiver, arg1, arg2, arg3, arg4);
     } catch (e) {
         catchedError.e = e;
         return catchedError;
@@ -418,8 +418,11 @@ Promise.prototype.withInput = function(data) {
 
         function doResolved(data){ me.resolve(data) }
         function doRejected(e){ me.reject(e); }
+        function doDone(e, data) {
+            e ? doRejected(e) : doResolved(data)
+        }
 
-        var ret = tryCatch3(this.successFn, this.scope, data, doResolved, doRejected);
+        var ret = tryCatch4(this.successFn, this.scope, data, doResolved, doRejected, doDone);
         if(ret === catchedError)
             this.reject(ret.e)
         else if(ret !== void 0 || this.successFn.length < 2) //function dosent handle resolve or reject so we all undefine as result
