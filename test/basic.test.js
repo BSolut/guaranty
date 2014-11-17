@@ -1,26 +1,6 @@
 var assert = require('assert'),
 	Promise = require('../index.js');
 
-//describe timeout
-
-
-/*describe('Timeout', function(){
-
-
-	it('timing out', function(done){
-
-		Promise().timeout(2).then(function(){
-			assert(false, 'Should never reached');
-		}).catch(function(e){
-			console.log(e);
-			done();
-		})
-
-	})
-
-})
-return;*/
-
 describe('Checks', function(){
 
 	it('Promise resolve has promise', function(done){
