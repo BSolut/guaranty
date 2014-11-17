@@ -323,13 +323,17 @@ Promise.prototype.asCallback = function() {
 /**
  * Wrapper for node-style function callback.
  **/
-Promise.prototype.thenCallback = function(callback) {    
+Promise.prototype.thenCallback = function(callback, handleError) {    
     return this.then(function(value, resolve){
         if(callback)
             callback(undefined, value)
         resolve(value);
     }, function(e){
-        callback && callback(e);
+        if(callback) {
+            callback(e);
+        } else if(handleError === false) {
+            throw e;
+        }
     });
 }
 
@@ -409,24 +413,33 @@ Promise.prototype.reject = function (e) {
 }
 
 /**
+ * Call next resolve or reject
+ * @private
+ */
+Promise.prototype.withNext = function(fn, data) {
+    var me = this;
+
+    function doResolved(data){ me.resolve(data) }
+    function doRejected(e){ me.reject(e); }
+    function doDone(e, data) {
+        e ? doRejected(e) : doResolved(data)
+    }
+
+    var ret = tryCatch4(fn, this.scope, data, doResolved, doRejected, doDone);
+    if(ret === catchedError)
+        this.reject(ret.e)
+    else if(ret !== void 0 || fn.length < 2) //function dosent handle resolve or reject so we all undefine as result
+        this.resolve(ret);    
+};
+
+
+/**
  * Attempt to resolve this promise with the specified input
  * @private
  */
 Promise.prototype.withInput = function(data) {
     if(this.successFn) {
-        var me = this;
-
-        function doResolved(data){ me.resolve(data) }
-        function doRejected(e){ me.reject(e); }
-        function doDone(e, data) {
-            e ? doRejected(e) : doResolved(data)
-        }
-
-        var ret = tryCatch4(this.successFn, this.scope, data, doResolved, doRejected, doDone);
-        if(ret === catchedError)
-            this.reject(ret.e)
-        else if(ret !== void 0 || this.successFn.length < 2) //function dosent handle resolve or reject so we all undefine as result
-            this.resolve(ret);
+        this.withNext(this.successFn, data)
     } else
         this.resolve(data);
 }
@@ -436,11 +449,7 @@ Promise.prototype.withInput = function(data) {
  */
 Promise.prototype.withError = function (e) {
     if(this.failFn) {
-        var ret = tryCatch1(this.failFn, this.scope, e);
-        if(ret !== catchedError)
-            return this.resolve(ret)
-        else
-            this.reject(ret.e)
+        this.withNext(this.failFn, e)
     } else
         this.reject(e)
 }

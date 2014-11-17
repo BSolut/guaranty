@@ -5,6 +5,22 @@ var assert = require('assert'),
 
 describe('error', function() {
 	
+    it('thenCallback handels exceptions or not', function(done){
+        var p = new Promise(false);
+        p.then(function(val, resolve, reject){
+            reject(new Error('BAEM'));
+        }) 
+        .thenCallback(undefined, false)
+        .then(function(val){
+            done(new Error('thenCallback handles error'));
+        })
+        .catch(function(e){
+            assert.strictEqual(e.message, 'BAEM');
+            done();
+        })
+        p.resolve(true);
+    })  
+
     it('thenCallback handels exceptions', function(done){
         var p = new Promise(false);
         p.then(function(val, resolve, reject){
@@ -13,7 +29,7 @@ describe('error', function() {
         .thenCallback(undefined)
         p.resolve(true);
         done();
-    })
+    })  
 
 	it('resolve twice', function(done){
         Promise.DEBUG = true;
