@@ -10,7 +10,7 @@ describe('error', function() {
         p.then(function(val, resolve, reject){
             reject(new Error('BAEM'));
         }) 
-        .thenCallback(undefined, false)
+        .thenCallback(undefined)
         .then(function(val){
             done(new Error('thenCallback handles error'));
         })
@@ -26,7 +26,7 @@ describe('error', function() {
         p.then(function(val, resolve, reject){
             reject(new Error('BAEM'));
         }) 
-        .thenCallback(undefined)
+        .thenCallback(undefined, false)
         p.resolve(true);
         done();
     })  

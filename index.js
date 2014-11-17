@@ -331,9 +331,9 @@ Promise.prototype.thenCallback = function(callback, handleError) {
     }, function(e){
         if(callback) {
             callback(e);
-        } else if(handleError === false) {
+        } else
+        if(handleError !== false)
             throw e;
-        }
     });
 }
 
