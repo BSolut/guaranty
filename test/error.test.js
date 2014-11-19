@@ -26,7 +26,7 @@ describe('error', function() {
         p.then(function(val, resolve, reject){
             reject(new Error('BAEM'));
         }) 
-        .thenCallback(undefined, false)
+        .thenCallback(undefined, true)
         p.resolve(true);
         done();
     })  

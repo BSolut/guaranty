@@ -145,9 +145,10 @@ Promise().nfcall(objFunction, obj, parm1)
   })
 ```
 
-### .thenCallback(Function fn, [Boolean handleError = true])
+### .thenCallback(Function fn, [Boolean stopError = false])
 
-Wrapper for node-style function callback. If any step before fails thenCallback will stop the fail chain with or without callback gets execute, to make sure somebody sees the error set handleError to false.
+Wrapper for node-style function callback. If any step before fails thenCallback checks callback functions exstist, if not thenCallback executes the fail chain. If stopError is true the fail chain execution gets stop even there is no callback function.
+
 
 ```js
 // Old style
@@ -169,11 +170,21 @@ function doStuff(data, callback) {
     .thenCallback(callback)
 }
 
+//Speical error handling
+
 function doStuff(data, callback) {
     Promise().then(function(val){
         return someRandomCrash();
     })
-    .thenCallback(callback, false); //if callback function is undefined Guaranty will raise the error
+    .thenCallback(callback); //if callback function is undefined Guaranty will raise the error
+}
+
+
+function doStuff(data, callback) {
+    Promise().then(function(val){
+        return someRandomCrash();
+    })
+    .thenCallback(callback, true); //no error will raised also the callback function is undefined
 }
 
 ```

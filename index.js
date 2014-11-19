@@ -323,7 +323,7 @@ Promise.prototype.asCallback = function() {
 /**
  * Wrapper for node-style function callback.
  **/
-Promise.prototype.thenCallback = function(callback, handleError) {    
+Promise.prototype.thenCallback = function(callback, stopError) {    
     return this.then(function(value, resolve){
         if(callback)
             callback(undefined, value)
@@ -332,7 +332,7 @@ Promise.prototype.thenCallback = function(callback, handleError) {
         if(callback) {
             callback(e);
         } else
-        if(handleError !== false)
+        if(stopError !== true)
             throw e;
     });
 }
