@@ -1,5 +1,11 @@
+[![Build Status](https://travis-ci.org/BSolut/guaranty.svg?branch=master)](https://travis-ci.org/BSolut/guaranty)
+
+
+
+
 Guaranty: a super lightweight promise for node.js
 ==================================
+
 
 **Guaranty** is a lightweight promise framework with an aim of providing a basic set of functionality similar to that provided by the [Q library](https://github.com/kriskowal/q "Q") or [Bluebird](https://github.com/petkaantonov/bluebird) without any browser support.
 
