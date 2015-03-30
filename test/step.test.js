@@ -4,6 +4,44 @@ var assert = require('assert'),
 describe('step', function(){
 
 
+    it('Chain errors async', function(done) {
+        Promise().step([2,3]).then(function(nr) {        
+            return Promise().step([2,1]).then(function(nr2, resolve, reject) {
+                setTimeout(function() {
+                    if(nr2 + nr === 3)
+                        return reject(new Error('Test'));
+                    resolve(nr2+nr);
+                }, 50)
+            })
+        })
+        .then(function(list) {
+            done(new Error('should not reached'));
+        }, function(error) {
+            if(error.message !== 'Test')
+                return done(error)
+            done();
+        })
+    })
+
+    it('Chain errors', function(done) {
+        
+        Promise().step([2]).then(function(nr) {        
+            return Promise().step([2,1]).then(function(nr2) {
+                if(nr2 + nr === 3)
+                    throw new Error('Test');
+                return nr2 + nr;
+            })
+        })
+        .then(function(list) {
+            done(new Error('should not reached'));
+        }, function(error) {
+            if(error.message !== 'Test')
+                return done(error)
+            done();
+        })
+
+    })
+
     it('runs empty', function(done){
         Promise().step([]).then(function(itm){
             done( new Error('never reache') );
