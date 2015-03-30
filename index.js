@@ -270,7 +270,7 @@ Promise.prototype.step = function(args, stopOnError) {
             var sub = new Promise();
             if(scope !== that) sub.bind(scope);
             sub.then(toCall.successFn, toCall.failFn)
-                .then(function(val, resolve){
+                .then(function(val){
                     result.push(val);
                     next();
                 })
