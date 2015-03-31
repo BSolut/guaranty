@@ -71,46 +71,47 @@ Promise.start = function(){
     return ret;
 }
 
+var pp = Promise.prototype;
 
 /**
  * Return true if the promise was rejected
  */
-Promise.prototype.isRejected = function(){
+pp.isRejected = function(){
     return (this.bitField & STATE.REJECTED) !== 0;
 }
 /**
  * Set promise to rejected
  * @private
  */
-Promise.prototype.setRejected = function(){
+pp.setRejected = function(){
     this.bitField |= STATE.REJECTED;
 }
 
 /**
  * Return true if the promise was resolved
  */
-Promise.prototype.isResolved = function(){
+pp.isResolved = function(){
     return (this.bitField & STATE.RESOLVED) !== 0;
 }
 /**
  * Set promise to resolved
  * @private
  */
-Promise.prototype.setResolved = function(){
+pp.setResolved = function(){
     this.bitField |= STATE.RESOLVED;
 }
 
 /**
  * Return true if the promise was resolved or rejected
  */
-Promise.prototype.isFulfilled = function(){
+pp.isFulfilled = function(){
     return this.isResolved() || this.isRejected();
 }
 
 /**
  * the most efficient way of utilizing `this` with promises. The handler functions are called in scope of the defined argument
  */
-Promise.prototype.bind = function(scope){
+pp.bind = function(scope){
     this.scope = scope;
     return this;
 }
@@ -120,7 +121,7 @@ Promise.prototype.bind = function(scope){
  * resolves. Allows for an optional second callback to handle the failure
  * case.
  */
-Promise.prototype.then = function(onSuccess, onFail) {
+pp.then = function(onSuccess, onFail) {
     var ret = new Promise(onSuccess, onFail);
     if(this.scope !== this)
         ret.bind(this.scope);
@@ -130,12 +131,12 @@ Promise.prototype.then = function(onSuccess, onFail) {
 /**
  * Provide a callback to be called whenever this promise is rejected
  */
-Promise.prototype.catch = function(onFail) {
+pp.catch = function(onFail) {
     return this.then(undefined, onFail);
 }
 
 
-Promise.prototype._nfcallScope = function(fn, scope, args) {
+pp._nfcallScope = function(fn, scope, args) {
     var result;
     args.push( mycallback );
     function mycallback(err, data) {
@@ -166,7 +167,7 @@ Promise.prototype._nfcallScope = function(fn, scope, args) {
  * an callback. All arguments for function should be given except the final 
  * callback
  */
-Promise.prototype.nfcall = function(fn, var_args) {
+pp.nfcall = function(fn, var_args) {
     var args = new Array(arguments.length-1);
     for(var i=1;i<arguments.length;++i)
         args[i-1] = arguments[i];
@@ -176,7 +177,7 @@ Promise.prototype.nfcall = function(fn, var_args) {
 /**
  * like nfcall but with scope
  */
-Promise.prototype.nfcallScope = function(fn, scope, var_args) {
+pp.nfcallScope = function(fn, scope, var_args) {
     //https://github.com/petkaantonov/bluebird/wiki/Optimization-killers#3-managing-arguments
     var args = new Array(arguments.length-2);
     for(var i=2;i<arguments.length;++i)
@@ -184,8 +185,7 @@ Promise.prototype.nfcallScope = function(fn, scope, var_args) {
     return this._nfcallScope(fn, scope, args);
 }
 
-
-Promise.prototype.parallel = function(args, stopOnError) {
+pp.parallel = function(args, stopOnError) {
     stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
 
     var scope = this.scope,
@@ -245,7 +245,7 @@ Promise.prototype.parallel = function(args, stopOnError) {
     return this.chainPromise(promise);    
 }
 
-Promise.prototype.step = function(args, stopOnError) {
+pp.step = function(args, stopOnError) {
     stopOnError = typeof stopOnError === 'undefined' ? true : stopOnError;
     var scope = this.scope,
         that = this;
@@ -308,7 +308,7 @@ Promise.prototype.step = function(args, stopOnError) {
  * rest, I.E. node js conventions.
  * If the the callback is called with multiple success values, it gets convert to an array of the values.
  */
-Promise.prototype.asCallback = function() {
+pp.asCallback = function() {
     var promise = this;
     function resolver(err, value) {
         if(err)
@@ -330,7 +330,7 @@ Promise.prototype.asCallback = function() {
 /**
  * Wrapper for node-style function callback.
  **/
-Promise.prototype.thenCallback = function(callback, stopError) {    
+pp.thenCallback = function(callback, stopError) {    
     return this.then(function(value, resolve, reject){
         if(callback)
             callback(undefined, value)
@@ -349,7 +349,7 @@ Promise.prototype.thenCallback = function(callback, stopError) {
  * Adds a new promis to chain
  * @private
  */
-Promise.prototype.chainPromise = function(promise) {
+pp.chainPromise = function(promise) {
     if(this.nextPromise)
         throw new Error('Promise allready chained');
     this.nextPromise = promise;
@@ -361,7 +361,7 @@ Promise.prototype.chainPromise = function(promise) {
  * Checks if the promiss can be fulfilled, if not and debug is on its race an error
  * @private
  */
-Promise.prototype.canFulfill = function(type) {
+pp.canFulfill = function(type) {
     if(!this.isFulfilled())
         return true;
     if(Promise.DEBUG) {
@@ -377,7 +377,7 @@ Promise.prototype.canFulfill = function(type) {
 /**
  * Resolve this promise with a specified value
  */
-Promise.prototype.resolve = function(data){
+pp.resolve = function(data){
     if(!this.canFulfill('resolve'))
         return;
     delete this.scope;
@@ -405,7 +405,7 @@ Promise.prototype.resolve = function(data){
 /**
  * Reject this promise with an error
  */
-Promise.prototype.reject = function (e) {
+pp.reject = function (e) {
     if(!this.canFulfill('reject'))
         return;
 
@@ -423,7 +423,7 @@ Promise.prototype.reject = function (e) {
  * Call next resolve or reject
  * @private
  */
-Promise.prototype.withNext = function(fn, data) {
+pp.withNext = function(fn, data) {
     var me = this;
 
     function doResolved(data){ me.resolve(data) }
@@ -444,7 +444,7 @@ Promise.prototype.withNext = function(fn, data) {
  * Attempt to resolve this promise with the specified input
  * @private
  */
-Promise.prototype.withInput = function(data) {
+pp.withInput = function(data) {
     if(this.successFn) {
         this.withNext(this.successFn, data)
     } else
@@ -454,7 +454,7 @@ Promise.prototype.withInput = function(data) {
  * Attempt to reject this promise with the specified error
  * @private
  */
-Promise.prototype.withError = function (e) {
+pp.withError = function (e) {
     if(this.failFn) {
         this.withNext(this.failFn, e)
     } else
