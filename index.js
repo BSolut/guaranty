@@ -1,3 +1,5 @@
+(function() {
+
 //from: bluebrid utils
 //Try catch is not supported in optimizing compiler
 //https://github.com/petkaantonov/bluebird/wiki/Optimization-killers
@@ -35,8 +37,7 @@ var STATE = {
     RESOLVED: 1 << 2
 }
 
-
-var Promise = module.exports = function(onSuccess, onFail) {
+var Promise = function(onSuccess, onFail) {
     if(!(this instanceof Promise)) {
         if(onSuccess === false)
             return new Promise()
@@ -49,7 +50,7 @@ var Promise = module.exports = function(onSuccess, onFail) {
     this.successFn = onSuccess;
     this.failFn = onFail;
 }
-
+Promise.hasProcess = typeof process !== 'undefined';
 Promise.DEBUG = false;
 
 Promise.isPromise = function(val){
@@ -57,10 +58,16 @@ Promise.isPromise = function(val){
 }
 
 Promise.start = function(){
-    var ret = new Promise();    
-    process.nextTick(function(){
-        ret.resolve(true)
-    })
+    var ret = new Promise();
+    if(Promise.hasProcess) {
+        process.nextTick(function(){
+            ret.resolve(true)
+        })  
+    } else {
+        setTimeout(function(){
+            ret.resolve(true);
+        },1)
+    }
     return ret;
 }
 
@@ -324,7 +331,7 @@ Promise.prototype.asCallback = function() {
  * Wrapper for node-style function callback.
  **/
 Promise.prototype.thenCallback = function(callback, stopError) {    
-    return this.then(function(value, resolve){
+    return this.then(function(value, resolve, reject){
         if(callback)
             callback(undefined, value)
         resolve(value);
@@ -453,3 +460,21 @@ Promise.prototype.withError = function (e) {
     } else
         this.reject(e)
 }
+
+
+if(typeof exports !== 'undefined') {
+    //Export guaranty object for node.js
+    exports = module.exports = Promise;
+} else {
+    //If we're in the browser, add as a global object.
+    this.Guaranty = Promise;
+}
+
+//AMD registration
+if(typeof define === 'function' && define.amd) {
+    define('underscore', [], function() {
+      return Promise;
+    });
+}
+
+}).call(this);
