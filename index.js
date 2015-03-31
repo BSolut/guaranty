@@ -472,7 +472,7 @@ if(typeof exports !== 'undefined') {
 
 //AMD registration
 if(typeof define === 'function' && define.amd) {
-    define('underscore', [], function() {
+    define('guaranty', [], function() {
       return Promise;
     });
 }
