@@ -367,9 +367,12 @@ pp.canFulfill = function(type) {
     if(Promise.DEBUG) {
         var msg = 'call '+type+' but promise allready '+(this.isResolved() ? 'resolved' : 'rejected');
         msg += '\r\n'+(new Error()).stack;
-        process.nextTick(function onPromiseCalledOften(){
-            throw new Error(msg);
-        })
+        if(Promise.hasProcess) {
+            process.nextTick(function onPromiseCalledOften(){
+                throw new Error(msg);
+            })
+        } else
+            new Error(msg);
     }
     return false;
 }
@@ -411,11 +414,14 @@ pp.reject = function (e) {
 
     delete this.scope;
     this.setRejected();
-    if(!this.nextPromise)
-        process.nextTick(function onPromiseThrow(){
-            throw e
-        })
-    else
+    if(!this.nextPromise) {
+        if(Promise.hasProcess) {
+            process.nextTick(function onPromiseThrow(){
+                throw e
+            })
+        } else
+            throw e;
+    } else
         this.nextPromise.withError(e);
 }
 
@@ -460,7 +466,6 @@ pp.withError = function (e) {
     } else
         this.reject(e)
 }
-
 
 if(typeof exports !== 'undefined') {
     //Export guaranty object for node.js
