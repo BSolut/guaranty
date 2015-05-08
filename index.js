@@ -62,7 +62,7 @@ Promise.start = function(){
     if(Promise.hasProcess) {
         process.nextTick(function(){
             ret.resolve(true)
-        })  
+        })
     } else {
         setTimeout(function(){
             ret.resolve(true);
@@ -159,19 +159,19 @@ pp._nfcallScope = function(fn, scope, args) {
             result.reject(ret.e);
     });
 
-    return this.chainPromise(result);    
+    return this.chainPromise(result);
 }
 
 /**
  * Returns a promise that will be call the function in a node style format with
- * an callback. All arguments for function should be given except the final 
+ * an callback. All arguments for function should be given except the final
  * callback
  */
 pp.nfcall = function(fn, var_args) {
     var args = new Array(arguments.length-1);
     for(var i=1;i<arguments.length;++i)
         args[i-1] = arguments[i];
-    return this._nfcallScope(fn, undefined, args);    
+    return this._nfcallScope(fn, undefined, args);
 }
 
 /**
@@ -191,7 +191,7 @@ pp.parallel = function(args, stopOnError) {
     var scope = this.scope,
         that = this;
 
-    var promise = new Promise(function(argsResolve, resolve){        
+    var promise = new Promise(function(argsResolve, resolve){
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
@@ -242,7 +242,7 @@ pp.parallel = function(args, stopOnError) {
         promise.nextPromise.reject(e);
     });
 
-    return this.chainPromise(promise);    
+    return this.chainPromise(promise);
 }
 
 pp.step = function(args, stopOnError) {
@@ -250,7 +250,7 @@ pp.step = function(args, stopOnError) {
     var scope = this.scope,
         that = this;
 
-    var promise = new Promise(function(argsResolve, resolve){        
+    var promise = new Promise(function(argsResolve, resolve){
         //Hijack next promis
         var toCall = this.nextPromise,
             nextPromise = this.nextPromise.nextPromise;
@@ -263,7 +263,7 @@ pp.step = function(args, stopOnError) {
             nextPromise && nextPromise.withError( new Error('Step arguments must be an error') );
             return undefined;
         }
-        
+
         var result = new Array(),
             idx = 0;
 
@@ -274,12 +274,19 @@ pp.step = function(args, stopOnError) {
                 return;
             }
 
+            function callNext(){
+                if(setImmediate)
+                    setImmediate(next)
+                else
+                    setTimeout(next, 0);                
+            }
+
             var sub = new Promise();
             if(scope !== that) sub.bind(scope);
             sub.then(toCall.successFn, toCall.failFn)
                 .then(function(val){
                     result.push(val);
-                    next();
+                    callNext();
                 })
                 .catch(function(e, resolve){
                     //Stop executing with have an error
@@ -289,7 +296,7 @@ pp.step = function(args, stopOnError) {
                         return;
                     }
                     result.push(e);
-                    next();
+                    callNext();
                 })
             sub.withInput(args[idx++]);
         }
@@ -298,13 +305,13 @@ pp.step = function(args, stopOnError) {
         promise.nextPromise.reject(e);
     });
 
-    return this.chainPromise(promise);    
+    return this.chainPromise(promise);
 }
 
 
 /**
- * Gives you a function of the PromiseResolver`. The callback accepts error 
- * object in first argument and success values on the 2nd parameter and the 
+ * Gives you a function of the PromiseResolver`. The callback accepts error
+ * object in first argument and success values on the 2nd parameter and the
  * rest, I.E. node js conventions.
  * If the the callback is called with multiple success values, it gets convert to an array of the values.
  */
@@ -320,7 +327,7 @@ pp.asCallback = function() {
                     retArgs[i-1] = arguments[i];
                 value = retArgs;
             }
-            promise.resolve(value);            
+            promise.resolve(value);
         }
     }
     return resolver;
@@ -330,7 +337,7 @@ pp.asCallback = function() {
 /**
  * Wrapper for node-style function callback.
  **/
-pp.thenCallback = function(callback, stopError) {    
+pp.thenCallback = function(callback, stopError) {
     return this.then(function(value, resolve, reject){
         if(callback)
             callback(undefined, value)
@@ -385,7 +392,7 @@ pp.resolve = function(data){
         return;
     delete this.scope;
     this.setResolved();
-    if(Promise.isPromise(data)) {   
+    if(Promise.isPromise(data)) {
         while(data.nextPromise) //Find the last promis and add me
             data = data.nextPromise;
         var me = this;
@@ -393,7 +400,7 @@ pp.resolve = function(data){
             function(val){
                 if(me.nextPromise)
                     me.nextPromise.withInput(val);
-            }, 
+            },
             function(e){
                 if(me.nextPromise)
                     me.nextPromise.withError(e);
@@ -442,7 +449,7 @@ pp.withNext = function(fn, data) {
     if(ret === catchedError)
         this.reject(ret.e)
     else if(ret !== void 0 || fn.length < 2) //function dosent handle resolve or reject so we all undefine as result
-        this.resolve(ret);    
+        this.resolve(ret);
 };
 
 
